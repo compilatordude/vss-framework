@@ -1,0 +1,972 @@
+<title>VSS Framework Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  /* Layout: a technical reference doc — mono display + humanist sans body,
+     dark-first palette with a signal-cyan accent, sticky section nav. */
+  :root {
+    color-scheme: dark;
+    --bg: #0d1218;
+    --fg: #e7ecf2;
+    --muted: #98a5b4;
+    --surface: #141b24;
+    --surface-2: #1a232f;
+    --border: #242f3c;
+    --accent: #58c2d8;
+    --accent-soft: rgba(88, 194, 216, 0.14);
+    --on-accent: #04131a;
+    --header-bg: rgba(13, 18, 24, 0.86);
+    --shadow: 0 1px 0 var(--border);
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      color-scheme: light;
+      --bg: #f5f7fa;
+      --fg: #182230;
+      --muted: #5b6776;
+      --surface: #ffffff;
+      --surface-2: #eef2f6;
+      --border: #dbe3ec;
+      --accent: #0d7a95;
+      --accent-soft: rgba(13, 122, 149, 0.12);
+      --on-accent: #ffffff;
+      --header-bg: rgba(245, 247, 250, 0.88);
+      --shadow: 0 1px 0 var(--border);
+    }
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #f5f7fa;
+    --fg: #182230;
+    --muted: #5b6776;
+    --surface: #ffffff;
+    --surface-2: #eef2f6;
+    --border: #dbe3ec;
+    --accent: #0d7a95;
+    --accent-soft: rgba(13, 122, 149, 0.12);
+    --on-accent: #ffffff;
+    --header-bg: rgba(245, 247, 250, 0.88);
+    --shadow: 0 1px 0 var(--border);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto;
+    height: env(safe-area-inset-top, 0px);
+    z-index: 10;
+    background: var(--header-bg);
+  }
+
+  /* -- header -- */
+  .site-header {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 5;
+    background: var(--header-bg);
+    -webkit-backdrop-filter: saturate(140%) blur(10px);
+    backdrop-filter: saturate(140%) blur(10px);
+    box-shadow: var(--shadow);
+  }
+  .site-header .inner {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 12px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px));
+  }
+  .brand { display: flex; align-items: baseline; gap: 10px; white-space: nowrap; }
+  .brand-name {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 1.02rem;
+    letter-spacing: -0.01em;
+  }
+  .brand-tag {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 2px 9px;
+  }
+  .site-nav {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+  }
+  .site-nav::-webkit-scrollbar { display: none; }
+  .site-nav a {
+    color: var(--muted);
+    text-decoration: none;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.8rem;
+    padding: 6px 10px;
+    border-radius: 8px;
+  }
+  .site-nav a:hover { color: var(--fg); background: var(--surface-2); }
+  .site-nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* -- main -- */
+  .page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 48px max(16px, env(safe-area-inset-right, 0px)) 120px max(16px, env(safe-area-inset-left, 0px));
+  }
+
+  /* -- hero -- */
+  .hero { padding: 24px 0 8px; }
+  .eyebrow {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    margin: 0 0 16px;
+  }
+  .hero h1 {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 700;
+    font-size: clamp(2rem, 6vw, 3.1rem);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin: 0 0 18px;
+    text-wrap: balance;
+  }
+  .hero .lede {
+    font-size: 1.12rem;
+    color: var(--muted);
+    max-width: 38em;
+    margin: 0 0 26px;
+  }
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 0 8px;
+  }
+  .fact {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.82rem;
+    color: var(--fg);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .fact b { color: var(--accent); font-weight: 700; }
+
+  /* -- toc -- */
+  .toc {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+    margin: 28px 0 8px;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+  }
+  .toc a {
+    color: var(--fg);
+    text-decoration: none;
+    font-size: 0.92rem;
+    padding: 4px 2px;
+  }
+  .toc a::before { content: "› "; color: var(--accent); }
+  .toc a:hover { color: var(--accent); }
+
+  /* -- sections -- */
+  section { padding: 40px 0 8px; border-top: 1px solid var(--border); margin-top: 32px; }
+  section:first-of-type { border-top: none; margin-top: 0; }
+  h2 {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: -0.01em;
+    margin: 0 0 8px;
+    text-wrap: balance;
+  }
+  h2 .hash { color: var(--accent); font-weight: 500; margin-right: 8px; }
+  .kicker {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin: 0 0 14px;
+  }
+  h3 {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 600;
+    font-size: 1.06rem;
+    margin: 30px 0 10px;
+  }
+  p { margin: 0 0 16px; max-width: 66ch; }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.4em; max-width: 66ch; }
+  li { margin: 4px 0; }
+  li > code, p > code, td > code {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.86em;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 5px;
+    white-space: nowrap;
+  }
+
+  /* -- code blocks -- */
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    margin: 0 0 20px;
+    line-height: 1.55;
+  }
+  pre code {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.86rem;
+    color: var(--fg);
+    white-space: pre;
+  }
+  .cmt { color: var(--muted); }
+
+  /* -- tables -- */
+  .table-scroll { overflow-x: auto; margin: 0 0 22px; border: 1px solid var(--border); border-radius: 12px; }
+  table { border-collapse: collapse; width: 100%; min-width: 480px; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  th {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+    background: var(--surface);
+    font-weight: 500;
+  }
+  td { background: var(--surface); }
+  td:first-child, th:first-child { padding-left: 16px; }
+  td:last-child, th:last-child { padding-right: 16px; }
+  td code { white-space: nowrap; }
+  td.n { font-variant-numeric: tabular-nums; }
+
+  /* -- callout -- */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    margin: 0 0 20px;
+    max-width: 66ch;
+  }
+  .callout p { margin: 0; }
+  .callout .callout-label {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 640px) {
+    .site-header .inner { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .site-nav { margin-left: 0; width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+</style>
+
+<header class="site-header">
+  <div class="inner">
+    <div class="brand">
+      <span class="brand-name">VSS Framework</span>
+      <span class="brand-tag">Usage Guide</span>
+    </div>
+    <nav class="site-nav" aria-label="Sections">
+      <a href="#overview">Overview</a>
+      <a href="#big-picture">Big picture</a>
+      <a href="#autoloads">Autoloads</a>
+      <a href="#data">Data</a>
+      <a href="#objects">Objects</a>
+      <a href="#add">How to add</a>
+      <a href="#signals">Signals</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+  <div class="hero">
+    <p class="eyebrow">Godot 4 addon · GDScript 2.0</p>
+    <h1>Build a horde-survival game on a clean, data-driven skeleton.</h1>
+    <p class="lede">VSS Framework is a reusable architecture for bullet-heaven games:
+      a data-driven character with auto-firing weapons and passive accessories, hordes
+      of enemies, XP gems, level-up choices, and a timed stage. This guide explains what
+      connects to what and shows exactly how to add your own content.</p>
+    <div class="facts">
+      <span class="fact"><b>3</b> autoloads</span>
+      <span class="fact"><b>7</b> data classes</span>
+      <span class="fact"><b>4</b> collision layers</span>
+      <span class="fact"><b>11</b> signals</span>
+    </div>
+  </div>
+
+  <nav class="toc" aria-label="Contents">
+    <a href="#overview">Overview</a>
+    <a href="#before-after">Before &amp; after</a>
+    <a href="#big-picture">The big picture</a>
+    <a href="#boot">Boot sequence</a>
+    <a href="#autoloads">The three autoloads</a>
+    <a href="#data">The data layer</a>
+    <a href="#objects">The object layer</a>
+    <a href="#systems">Systems</a>
+    <a href="#ui">UI</a>
+    <a href="#content">Content registration</a>
+    <a href="#add">How to add…</a>
+    <a href="#signals">Signals reference</a>
+    <a href="#extension">Extension points</a>
+    <a href="#gotchas">Conventions &amp; gotchas</a>
+  </nav>
+
+  <section id="overview">
+    <h2><span class="hash">§</span>Overview</h2>
+    <p>VSS Framework provides the genre's core loop out of the box: a data-driven
+      <strong>player character</strong> with auto-firing weapons and passive accessories,
+      <strong>hordes of enemies</strong> that chase and damage you, <strong>experience
+      gems</strong> dropped on death, a <strong>level-up screen</strong> that pauses the
+      game and offers three random upgrades, and a <strong>timed stage</strong> with a
+      spawn director that ramps difficulty.</p>
+    <p>Everything that varies between characters, weapons, accessories, enemies and
+      stages is <strong>data, not code</strong>. You extend the framework by registering
+      definitions and, when you need custom behaviour, by subclassing one small hook.</p>
+    <div class="callout">
+      <span class="callout-label">Requirements</span>
+      <p>Godot 4.3 or newer. This guide is the deep companion to the project's
+        <code>README.md</code>, which is the quick overview.</p>
+    </div>
+  </section>
+
+  <section id="before-after">
+    <h2><span class="hash">§</span>Before &amp; after</h2>
+    <p class="kicker">Same feature, with and without the framework</p>
+    <p>The framework's whole point is to replace boilerplate with data. Here is the
+      same feature written <strong>without</strong> the framework, then
+      <strong>with</strong> it.</p>
+
+    <h3>An auto-firing weapon</h3>
+    <p><strong>Before</strong> — two scripts and ~30 lines of boilerplate just to fire
+      one projectile at the nearest enemy, with no stat scaling, piercing, or level-up
+      support:</p>
+    <pre><code><span class="cmt"># player.gd — raw Godot</span>
+extends CharacterBody2D
+
+var cooldown := 1.2
+var damage := 8.0
+var timer := 0.0
+var projectile_scene := preload("res://projectile.tscn")
+
+func _physics_process(delta: float) -&gt; void:
+    timer -= delta
+    if timer &lt;= 0.0:
+        timer = cooldown
+        fire()
+
+func fire() -&gt; void:
+    var enemies := get_tree().get_nodes_in_group("enemies")
+    if enemies.is_empty():
+        return
+    var origin := global_position
+    enemies.sort_custom(func(a, b):
+        return origin.distance_squared_to(a.global_position) &lt; origin.distance_squared_to(b.global_position))
+    var proj := projectile_scene.instantiate()
+    proj.damage = damage
+    proj.direction = (enemies[0].global_position - origin).normalized()
+    proj.global_position = origin
+    get_tree().current_scene.add_child(proj)</code></pre>
+    <pre><code><span class="cmt"># projectile.gd — raw Godot</span>
+extends Area2D
+
+var damage: float
+var direction: Vector2
+var speed := 400.0
+var lifetime := 2.0
+
+func _physics_process(delta: float) -&gt; void:
+    global_position += direction * speed * delta
+    lifetime -= delta
+    if lifetime &lt;= 0.0:
+        queue_free()</code></pre>
+    <p><strong>After</strong> — a four-line subclass plus a data registration. Targeting,
+      cooldown, spawning, pierce, stat scaling and level-up integration are all handled
+      for you:</p>
+    <pre><code><span class="cmt"># content/weapons/wand.gd — with the framework</span>
+class_name Wand
+extends Weapon
+<span class="cmt">## The base Weapon handles cooldown, targeting, spawning and scaling.</span></code></pre>
+    <pre><code>var wand := WeaponData.new()
+wand.id = "wand"
+wand.base_stats = _stats({"power": 8.0, "cooldown": 1.2, "speed": 400.0, "duration": 2.0})
+wand.weapon_script = preload("res://content/weapons/wand.gd")
+DataManager.register_weapon(wand)</code></pre>
+
+    <h3>A chasing enemy</h3>
+    <p><strong>Before</strong> — chasing, contact damage, and the XP drop are all
+      hand-rolled:</p>
+    <pre><code><span class="cmt"># enemy.gd — raw Godot</span>
+extends CharacterBody2D
+
+var hp := 10.0
+var move_speed := 90.0
+var contact_damage := 5.0
+var xp_value := 1.0
+var attack_timer := 0.0
+
+func _physics_process(delta: float) -&gt; void:
+    var player := get_tree().get_first_node_in_group("player")
+    if player == null:
+        return
+    velocity = (player.global_position - global_position).normalized() * move_speed
+    move_and_slide()
+    attack_timer -= delta
+    if attack_timer &lt;= 0.0 and global_position.distance_to(player.global_position) &lt; 20.0:
+        attack_timer = 0.5
+        player.take_damage(contact_damage)
+
+func take_damage(amount: float) -&gt; void:
+    hp -= amount
+    if hp &lt;= 0.0:
+        var gem := preload("res://gem.tscn").instantiate()
+        gem.value = xp_value
+        gem.global_position = global_position
+        get_tree().current_scene.add_child(gem)
+        queue_free()</code></pre>
+    <p><strong>After</strong> — override only the visuals; movement, contact damage, and
+      the XP drop come from <code>Enemy</code>:</p>
+    <pre><code><span class="cmt"># content/enemies/chaser.gd — with the framework</span>
+class_name Chaser
+extends Enemy
+
+func _draw() -&gt; void:
+    draw_circle(Vector2.ZERO, 12.0, Color(0.9, 0.4, 0.2))</code></pre>
+    <pre><code>var chaser := EnemyData.new()
+chaser.id = "chaser"
+chaser.max_hp = 10.0
+chaser.move_speed = 90.0
+chaser.contact_damage = 5.0
+chaser.xp_value = 1.0
+chaser.enemy_script = preload("res://content/enemies/chaser.gd")
+DataManager.register_enemy(chaser)</code></pre>
+
+    <p>Same story for accessories, characters and stages — a data definition plus, at
+      most, one small override.</p>
+  </section>
+
+  <section id="big-picture">
+    <h2><span class="hash">§</span>The big picture</h2>
+    <p class="kicker">Six layers, one-way data flow</p>
+    <p>The framework is an addon: its code lives under <code>addons/vss_framework/</code>, split into six layers. Your own game content lives outside the addon, in your project's own folders.</p>
+    <div class="table-scroll">
+      <table>
+        <tr><th>Layer (under <code>addons/vss_framework/</code>)</th><th>What lives there</th></tr>
+        <tr><td><code>demo/</code></td><td>Entry scene — registers content, builds the world, starts a run.</td></tr>
+        <tr><td><code>autoload/</code></td><td>Singletons — <code>SignalBus</code>, <code>DataManager</code>, <code>GameManager</code>.</td></tr>
+        <tr><td><code>data/</code></td><td><code>Resource</code> classes that <em>describe</em> a thing (weapon, enemy, …).</td></tr>
+        <tr><td><code>objects/</code></td><td>Runtime gameplay nodes/objects (player, enemy, projectile, …).</td></tr>
+        <tr><td><code>systems/</code></td><td>Recurring logic — spawn pacing and level-up choice generation.</td></tr>
+        <tr><td><code>ui/</code></td><td>HUD and the level-up screen (both built in code).</td></tr>
+        <tr><td><code>content/</code></td><td>The example content you replace with your own game's content.</td></tr>
+      </table>
+    </div>
+    <p><strong>Data flows one way.</strong> Content is registered into
+      <code>DataManager</code> as <code>Resource</code> instances. Runtime objects look
+      data up by string id and are constructed from the script a data entry points at.
+      Systems never reach into each other; they talk through <code>SignalBus</code>
+      signals. <code>GameManager</code> owns the high-level run state.</p>
+    <h3>A single frame</h3>
+    <pre><code><span class="cmt"># per frame</span>
+GameManager._process         → advance timer, check win
+CharacterController._physics → input, move, regen, drive weapons/accessories
+SpawnDirector._process       → spawn an enemy when the timer expires
+Enemy._physics_process       → chase player, deal contact damage
+Projectile._physics_process  → move, hit enemies
+Pickup._physics_process      → magnet toward player, grant XP on contact</code></pre>
+  </section>
+
+  <section id="boot">
+    <h2><span class="hash">§</span>Boot sequence</h2>
+    <p>When you press F5, Godot loads <code>addons/vss_framework/demo/main.tscn</code> — a bare
+      <code>Node2D</code> with <code>addons/vss_framework/demo/main.gd</code> attached. Its <code>_ready()</code>
+      runs three steps in order:</p>
+    <ol>
+      <li><strong>Register content</strong> — <code>ExampleContent.register_all()</code>
+        registers the demo character, weapons, accessory, enemies and stage into
+        <code>DataManager</code>.</li>
+      <li><strong>Build the world</strong> — <code>_setup_world()</code> adds a
+        <code>SpawnDirector</code>, a <code>LevelUpSystem</code>, a <code>HUD</code>,
+        and a <code>LevelUpScreen</code> as children of the main node.</li>
+      <li><strong>Start the run</strong> — <code>_start_run()</code> creates a
+        <code>CharacterController</code>, assigns it the <code>"demo"</code> data, adds
+        it to the tree, attaches a <code>Camera2D</code>, then calls
+        <code>GameManager.start_run(character, stage)</code>.</li>
+    </ol>
+    <div class="callout">
+      <span class="callout-label">Your entry point</span>
+      <p>To ship your own game, write your own content registration (a copy of
+        <code>ExampleContent</code>, or <code>.tres</code> resources), register your own
+        character and stage, and build your own main scene. The demo in
+        <code>addons/vss_framework/demo/</code> is the reference.</p>
+    </div>
+  </section>
+
+  <section id="autoloads">
+    <h2><span class="hash">§</span>The three autoloads</h2>
+    <p class="kicker">Singletons registered by the plugin</p>
+    <p>Autoloads are created in declaration order before the main scene loads, so any
+      script can refer to them by name: <code>SignalBus</code>, <code>DataManager</code>,
+      <code>GameManager</code>.</p>
+
+    <h3>SignalBus</h3>
+    <p>The event bus. Systems subscribe to signals here instead of holding references to
+      each other. See the <a href="#signals">signals reference</a> for who emits and
+      listens to each one.</p>
+
+    <h3>DataManager</h3>
+    <p>The central registry. It holds five dictionaries keyed by string id:</p>
+    <div class="table-scroll">
+      <table>
+        <tr><th>Dictionary</th><th>Register</th><th>Look up</th></tr>
+        <tr><td><code>characters</code></td><td><code>register_character(data)</code></td><td><code>get_character(id)</code></td></tr>
+        <tr><td><code>weapons</code></td><td><code>register_weapon(data)</code></td><td><code>get_weapon(id)</code></td></tr>
+        <tr><td><code>accessories</code></td><td><code>register_accessory(data)</code></td><td><code>get_accessory(id)</code></td></tr>
+        <tr><td><code>enemies</code></td><td><code>register_enemy(data)</code></td><td><code>get_enemy(id)</code></td></tr>
+        <tr><td><code>stages</code></td><td><code>register_stage(data)</code></td><td><code>get_stage(id)</code></td></tr>
+      </table>
+    </div>
+    <p><code>weapon_ids()</code> and <code>accessory_ids()</code> return every registered
+      id and are used by the level-up system to offer "new item" choices.</p>
+
+    <h3>GameManager</h3>
+    <p>Owns a run's high-level state and the win/lose transitions:</p>
+    <div class="table-scroll">
+      <table>
+        <tr><th>Member</th><th>Meaning</th></tr>
+        <tr><td><code>player</code></td><td>The active <code>CharacterController</code>, or <code>null</code>.</td></tr>
+        <tr><td><code>stage_data</code></td><td>The current <code>StageData</code>.</td></tr>
+        <tr><td><code>elapsed</code></td><td>Seconds since <code>start_run</code>.</td></tr>
+        <tr><td><code>is_running</code></td><td><code>true</code> while a run is being played.</td></tr>
+        <tr><td><code>world_rect</code></td><td>World bounds; clamps the player and constrains spawns.</td></tr>
+      </table>
+    </div>
+    <p>Key methods: <code>start_run(player, stage)</code>,
+      <code>pause()</code> / <code>unpause()</code> (toggle <code>get_tree().paused</code>),
+      <code>spawn(node)</code> (adds a node to the current scene), and
+      <code>_win()</code> / <code>_lose()</code> (emit the corresponding signal and stop
+      the clock).</p>
+  </section>
+
+  <section id="data">
+    <h2><span class="hash">§</span>The data layer</h2>
+    <p class="kicker">Resource classes that describe a thing</p>
+    <p>Every "thing" is a <code>Resource</code> subclass in <code>addons/vss_framework/data/</code>. You
+      register an instance by id; gameplay code reads it back and constructs the matching
+      runtime object.</p>
+
+    <h3>ModifierStats</h3>
+    <p>The shared stat bag — every field is an exported float (or int) so values are
+      visible in the inspector. Helpers: <code>reset()</code>, <code>add(other)</code>,
+      and <code>scaled(factor)</code>. The fields the base gameplay uses today:</p>
+    <div class="table-scroll">
+      <table>
+        <tr><th>Stat</th><th>Meaning</th><th>Used by</th></tr>
+        <tr><td><code>power</code></td><td>+% weapon damage</td><td>weapons scale damage</td></tr>
+        <tr><td><code>area</code></td><td>+% weapon area</td><td>weapons scale hit radius</td></tr>
+        <tr><td><code>speed</code></td><td>+% projectile speed</td><td>weapons scale speed</td></tr>
+        <tr><td><code>duration</code></td><td>+% projectile lifetime</td><td>weapons scale duration</td></tr>
+        <tr><td><code>cooldown</code></td><td>−% weapon cooldown</td><td>weapons scale cooldown</td></tr>
+        <tr><td><code>amount</code></td><td>+ projectiles per shot</td><td>weapons add to amount</td></tr>
+        <tr><td><code>move_speed</code></td><td>px/s movement</td><td>character movement</td></tr>
+        <tr><td><code>max_hp</code></td><td>maximum health</td><td>character health</td></tr>
+        <tr><td><code>magnet</code></td><td>+ pickup radius (px)</td><td>pickup magnet</td></tr>
+        <tr><td><code>growth</code></td><td>+% XP gained</td><td>XP gain</td></tr>
+        <tr><td><code>armor</code></td><td>flat damage reduction per hit</td><td>damage taken</td></tr>
+        <tr><td><code>regen</code></td><td>health per second</td><td>character regen</td></tr>
+      </table>
+    </div>
+    <p>The remaining fields (<code>luck</code>, <code>greed</code>, <code>shields</code>,
+      <code>revivals</code>, <code>rerolls</code>, <code>skips</code>, <code>curse</code>,
+      <code>banish</code>, <code>shroud</code>, <code>charm</code>, <code>defang</code>,
+      <code>thorns</code>, <code>invul_time_bonus</code>, <code>fever</code>,
+      <code>recycle</code>) are <strong>reserved placeholders</strong> for you to wire up —
+      see <a href="#extension">Extension points</a>.</p>
+
+    <h3>The other data classes</h3>
+    <div class="table-scroll">
+      <table>
+        <tr><th>Class</th><th>Describes</th></tr>
+        <tr><td><code>CharacterData</code></td><td>id, name, description, <code>base_stats</code>, <code>starting_weapons</code>.</td></tr>
+        <tr><td><code>WeaponData</code></td><td>id, name, <code>max_level</code>, <code>base_stats</code>, <code>level_bonus</code>, <code>pierce</code>, <code>weapon_script</code>, <code>projectile_scene</code>, <code>is_area_weapon</code>.</td></tr>
+        <tr><td><code>AccessoryData</code></td><td>id, name, <code>max_level</code>, <code>stats</code>, <code>level_bonus</code>, <code>accessory_script</code>.</td></tr>
+        <tr><td><code>EnemyData</code></td><td>id, <code>max_hp</code>, <code>move_speed</code>, <code>contact_damage</code>, <code>xp_value</code>, <code>scale</code>, <code>enemy_script</code>.</td></tr>
+        <tr><td><code>StageData</code></td><td>id, <code>duration_seconds</code>, <code>enemy_pool</code>, <code>spawn_interval</code>, <code>spawn_ramp</code>, <code>max_enemies</code>.</td></tr>
+        <tr><td><code>UpgradeChoice</code></td><td>One level-up option: a <code>kind</code> enum plus an <code>item_id</code> or <code>stat_name</code> + <code>stat_value</code>.</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section id="objects">
+    <h2><span class="hash">§</span>The object layer</h2>
+    <p class="kicker">Runtime gameplay objects</p>
+
+    <h3>Equipment hierarchy</h3>
+    <pre><code>Equipment (RefCounted)   — not a Node; owned and driven by the character
+├── Weapon               — auto-fires on a cooldown
+└── Accessory            — passive; grants stats to its owner</code></pre>
+    <p><code>Equipment</code> holds <code>owner</code> and <code>level</code>, and defines
+      <code>is_max_level()</code>, <code>level_up()</code>, <code>update(delta)</code>, and
+      <code>display_name()</code>. Because it is a <code>RefCounted</code> (not a
+      <code>Node</code>), its lifetime is owned by the <code>CharacterController</code>
+      that holds it in a list and calls <code>update()</code> every frame.</p>
+
+    <h3>CharacterController</h3>
+    <p>The player. Owns <code>weapons</code> and <code>accessories</code> arrays plus three
+      stat layers — <code>base_stats</code>, <code>level_bonus</code>, and the cached
+      effective <code>stats</code>. <code>recalculate_stats()</code> recomputes:</p>
+    <pre><code>stats = base_stats + level_bonus + Σ accessory.get_current_stats()</code></pre>
+    <p>then reads <code>max_hp</code>, <code>move_speed</code> and
+      <code>magnet_radius</code> off the result. Each frame <code>_physics_process</code>
+      moves the player, applies regen, and calls <code>update(delta)</code> on every weapon
+      and accessory. Methods you'll call from content or systems:
+      <code>add_weapon(data)</code>, <code>add_accessory(data)</code>,
+      <code>find_weapon(id)</code>, <code>find_accessory(id)</code>,
+      <code>take_damage(amount)</code>, <code>gain_xp(amount)</code>.</p>
+
+    <h3>Weapon</h3>
+    <p>Auto-fires on a cooldown. <code>update()</code> counts down the cooldown and calls
+      <code>fire()</code>, which delegates to <code>_fire()</code> — the hook subclasses
+      override. The default <code>_fire()</code> launches projectiles at the nearest
+      enemies. Stat accessors scale the weapon's per-level numbers by the
+      <strong>owner's</strong> effective stats:</p>
+    <div class="table-scroll">
+      <table>
+        <tr><th>Accessor</th><th>Formula</th></tr>
+        <tr><td><code>get_damage()</code></td><td><code>power × (1 + owner.power)</code></td></tr>
+        <tr><td><code>get_cooldown()</code></td><td><code>max(0.05, cooldown × (1 − owner.cooldown))</code></td></tr>
+        <tr><td><code>get_area()</code></td><td><code>area × (1 + owner.area)</code></td></tr>
+        <tr><td><code>get_speed()</code></td><td><code>speed × (1 + owner.speed)</code></td></tr>
+        <tr><td><code>get_duration()</code></td><td><code>duration × (1 + owner.duration)</code></td></tr>
+        <tr><td><code>get_amount()</code></td><td><code>max(1, amount + owner.amount)</code></td></tr>
+        <tr><td><code>get_pierce()</code></td><td><code>weapon_data.pierce</code></td></tr>
+      </table>
+    </div>
+    <p>The weapon's own per-level numbers come from <code>_level_stats()</code>:
+      <code>base_stats + level_bonus × (level − 1)</code>.</p>
+
+    <h3>Accessory</h3>
+    <p>Passive. <code>get_current_stats()</code> returns
+      <code>stats + level_bonus × (level − 1)</code>, which the owner folds into
+      <code>recalculate_stats()</code>.</p>
+
+    <h3>Enemy, Projectile, Pickup</h3>
+    <ul>
+      <li><strong>Enemy</strong> (<code>CharacterBody2D</code>) — chases the player, deals
+        contact damage on a 0.5s cooldown via a child <code>Area2D</code>, and drops a
+        <code>Pickup</code> gem on death. <code>take_damage()</code> is guarded so a single
+        enemy dies (and drops) exactly once even if multiple projectiles hit it in one frame.</li>
+      <li><strong>Projectile</strong> (<code>Area2D</code>) — moves in a straight line,
+        damages the first enemies it touches, and expires after <code>pierce</code> hits or
+        <code>lifetime</code> seconds.</li>
+      <li><strong>Pickup</strong> (<code>Area2D</code>) — sits still until the player is
+        within <code>60 + player.stats.magnet</code> px, then flies toward them and grants
+        XP on contact.</li>
+    </ul>
+
+    <h3>Collision layers</h3>
+    <div class="table-scroll">
+      <table>
+        <tr><th>Layer</th><th>Used by</th></tr>
+        <tr><td class="n">1</td><td><code>CharacterController</code> (player)</td></tr>
+        <tr><td class="n">2</td><td><code>Enemy</code> (detected by projectiles)</td></tr>
+        <tr><td class="n">4</td><td><code>Projectile</code></td></tr>
+        <tr><td class="n">8</td><td><code>Pickup</code></td></tr>
+      </table>
+    </div>
+    <p>Masks: the player body masks nothing (movement is manual); enemies use a child
+      <code>Area2D</code> masked to layer 1 to sense the player; projectiles mask layer 2;
+      pickups mask layer 1.</p>
+  </section>
+
+  <section id="systems">
+    <h2><span class="hash">§</span>Systems</h2>
+    <h3>SpawnDirector</h3>
+    <p>Spawns enemies over time. Each frame it counts down <code>_spawn_timer</code>; on
+      expiry it resets the timer to <code>_current_interval()</code> and, if the live enemy
+      count is under <code>stage_data.max_enemies</code>, calls <code>_spawn_enemy()</code>.
+      The interval starts at <code>spawn_interval</code> and shrinks by
+      <code>spawn_ramp</code> each minute (down to a 0.1s floor).</p>
+    <h3>LevelUpSystem</h3>
+    <p>When <code>player_leveled_up</code> fires it builds up to three random
+      <code>UpgradeChoice</code>s — upgrades for owned weapons/accessories that aren't max
+      level, new weapons/accessories the player doesn't own (capped at 6 of each), and flat
+      stat boosts from <code>STAT_BOOSTS</code>. It pauses the game, emits
+      <code>level_up_choices_ready</code>, and later <code>apply_choice()</code> applies the
+      pick, unpauses, and re-checks for a follow-up level.</p>
+  </section>
+
+  <section id="ui">
+    <h2><span class="hash">§</span>UI</h2>
+    <p>Both UI layers are built <strong>entirely in code</strong> (no scene files) and
+      driven by <code>SignalBus</code>:</p>
+    <ul>
+      <li><strong>HUD</strong> (<code>CanvasLayer</code>, layer 5) — timer, HP, level and XP
+        bar. Listens to <code>player_hp_changed</code>, <code>xp_changed</code>,
+        <code>player_leveled_up</code>, <code>game_over</code>, <code>game_won</code>.</li>
+      <li><strong>LevelUpScreen</strong> (<code>CanvasLayer</code>, layer 10) — shows one
+        button per choice. Its <code>process_mode</code> is <code>PROCESS_MODE_ALWAYS</code>
+        so buttons stay clickable while the tree is paused.</li>
+    </ul>
+  </section>
+
+  <section id="content">
+    <h2><span class="hash">§</span>Content registration</h2>
+    <p><code>addons/vss_framework/content/example_content.gd</code> is a <code>RefCounted</code> with a static
+      <code>register_all()</code> that builds every demo definition in code and pushes it
+      into <code>DataManager</code>. Its <code>_stats({...})</code> helper constructs a
+      <code>ModifierStats</code> from a dictionary of property/value pairs:</p>
+    <pre><code>static func _register_weapons() -&gt; void:
+    var wand := WeaponData.new()
+    wand.id = "wand"
+    wand.display_name = "Wand"
+    wand.max_level = 8
+    wand.base_stats = _stats({"power": 8.0, "cooldown": 1.2, "speed": 400.0, "duration": 2.0, "amount": 1.0})
+    wand.level_bonus = _stats({"power": 2.0, "cooldown": -0.08})
+    wand.pierce = 0
+    wand.weapon_script = preload("res://addons/vss_framework/content/weapons/wand.gd")
+    wand.is_area_weapon = false
+    DataManager.register_weapon(wand)</code></pre>
+    <p>You can keep registering in code, or build the same objects as <code>.tres</code>
+      resources and edit them in the inspector — either way, gameplay code only ever calls
+      <code>DataManager.get_*</code>.</p>
+  </section>
+
+  <section id="add">
+    <h2><span class="hash">§</span>How to add…</h2>
+    <p class="kicker">Recipe book</p>
+    <p>Each recipe assumes you add files to <strong>your own project</strong> — the
+      examples use a top-level <code>content/</code> folder, but any path works as long
+      as your <code>preload</code> points at it. Register each definition from your own
+      content class (a copy of <code>ExampleContent</code>) or a <code>.tres</code>
+      resource, then reference it by id.</p>
+
+    <h3>A projectile weapon</h3>
+    <p>Create a <code>Weapon</code> subclass — for a plain projectile weapon you usually
+      need no code at all, since the base <code>_fire()</code> already launches projectiles:</p>
+    <pre><code><span class="cmt"># content/weapons/laser.gd</span>
+class_name Laser
+extends Weapon
+<span class="cmt">## Fires a fast bolt at the nearest enemy. Default _fire() behaviour.</span></code></pre>
+    <pre><code>var laser := WeaponData.new()
+laser.id = "laser"
+laser.display_name = "Laser"
+laser.description = "Fires a piercing bolt."
+laser.max_level = 8
+laser.base_stats = _stats({"power": 12.0, "cooldown": 0.9, "area": 8.0, "speed": 600.0, "duration": 1.5, "amount": 1.0})
+laser.level_bonus = _stats({"power": 3.0, "cooldown": -0.06})
+laser.pierce = 1
+laser.weapon_script = preload("res://content/weapons/laser.gd")
+laser.is_area_weapon = false
+DataManager.register_weapon(laser)</code></pre>
+    <p>To make it a <strong>starting</strong> weapon, add <code>"laser"</code> to the
+      character's <code>starting_weapons</code>. To make it <strong>appear in level-ups</strong>,
+      do nothing — the level-up system offers every registered weapon automatically.</p>
+
+    <h3>An area weapon</h3>
+    <p>Override <code>_fire()</code> to damage enemies within <code>get_area()</code>
+      instead of firing projectiles:</p>
+    <pre><code><span class="cmt"># content/weapons/nova.gd</span>
+class_name Nova
+extends Weapon
+
+func _fire() -&gt; void:
+    var radius := get_area()
+    var damage := get_damage()
+    for enemy in owner.get_tree().get_nodes_in_group("enemies"):
+        if owner.global_position.distance_to(enemy.global_position) &lt;= radius:
+            enemy.take_damage(damage)</code></pre>
+    <p>Then register its <code>WeaponData</code> with <code>is_area_weapon = true</code>
+      (and no <code>projectile_scene</code>).</p>
+
+    <h3>An accessory</h3>
+    <pre><code><span class="cmt"># content/accessories/berserk_charm.gd</span>
+class_name BerserkCharm
+extends Accessory
+<span class="cmt">## Grants bonus damage. Numbers come from its AccessoryData.</span></code></pre>
+    <pre><code>var charm := AccessoryData.new()
+charm.id = "berserk_charm"
+charm.display_name = "Berserk Charm"
+charm.description = "Grants bonus damage."
+charm.max_level = 5
+charm.stats = _stats({"power": 0.10})
+charm.level_bonus = _stats({"power": 0.05})
+charm.accessory_script = preload("res://content/accessories/berserk_charm.gd")
+DataManager.register_accessory(charm)</code></pre>
+
+    <h3>An enemy</h3>
+    <pre><code><span class="cmt"># content/enemies/ghost.gd</span>
+class_name Ghost
+extends Enemy
+
+func _draw() -&gt; void:
+    draw_circle(Vector2.ZERO, 12.0, Color(0.6, 0.9, 1.0))</code></pre>
+    <pre><code>var ghost := EnemyData.new()
+ghost.id = "ghost"
+ghost.display_name = "Ghost"
+ghost.max_hp = 15.0
+ghost.move_speed = 120.0
+ghost.contact_damage = 8.0
+ghost.xp_value = 2.0
+ghost.scale = 1.2
+ghost.enemy_script = preload("res://content/enemies/ghost.gd")
+DataManager.register_enemy(ghost)</code></pre>
+    <p>Add <code>"ghost"</code> to a stage's <code>enemy_pool</code> so the spawn director
+      can pick it.</p>
+
+    <h3>A character</h3>
+    <pre><code>var hero := CharacterData.new()
+hero.id = "hero"
+hero.display_name = "Hero"
+hero.description = "Fast and fragile."
+hero.base_stats = _stats({"max_hp": 80.0, "move_speed": 260.0})
+hero.starting_weapons = ["wand", "laser"]
+DataManager.register_character(hero)</code></pre>
+    <p>Then construct it in your main scene (or menu) with
+      <code>character.character_data = DataManager.get_character("hero")</code>.</p>
+
+    <h3>A stage</h3>
+    <pre><code>var stage := StageData.new()
+stage.id = "graveyard"
+stage.display_name = "Graveyard"
+stage.duration_seconds = 420.0
+stage.enemy_pool = ["chaser", "ghost", "brute"]
+stage.spawn_interval = 1.2
+stage.spawn_ramp = 0.12
+stage.max_enemies = 180
+DataManager.register_stage(stage)</code></pre>
+    <p>Pass it to <code>GameManager.start_run(player, DataManager.get_stage("graveyard"))</code>
+      and <code>spawn_director.setup(...)</code>.</p>
+
+    <h3>A stat-boost option</h3>
+    <p>Append a dictionary to the <code>STAT_BOOSTS</code> constant in
+      <code>level_up_system.gd</code>:</p>
+    <pre><code>{"stat": "luck", "value": 0.10, "label": "Fortune", "desc": "+10% luck"},</code></pre>
+    <p>The <code>stat</code> key must match a <code>ModifierStats</code> property,
+      <code>value</code> is the flat increment, and <code>label</code>/<code>desc</code> are
+      the card text. (<code>luck</code> is a placeholder unless you wire it up.)</p>
+  </section>
+
+  <section id="signals">
+    <h2><span class="hash">§</span>Signals reference</h2>
+    <div class="table-scroll">
+      <table>
+        <tr><th>Signal</th><th>Emitted by</th><th>Listened to by</th><th>Payload</th></tr>
+        <tr><td><code>run_started</code></td><td><code>GameManager.start_run</code></td><td>extensibility</td><td>—</td></tr>
+        <tr><td><code>game_won</code></td><td><code>GameManager._win</code></td><td><code>HUD</code></td><td>—</td></tr>
+        <tr><td><code>game_over</code></td><td><code>GameManager._lose</code></td><td><code>HUD</code></td><td>—</td></tr>
+        <tr><td><code>player_hp_changed</code></td><td><code>CharacterController.take_damage</code></td><td><code>HUD</code></td><td><code>(current_hp, max_hp)</code></td></tr>
+        <tr><td><code>player_died</code></td><td><code>CharacterController._die</code></td><td><code>GameManager._lose</code></td><td>—</td></tr>
+        <tr><td><code>player_leveled_up</code></td><td><code>CharacterController._check_level_up</code></td><td><code>HUD</code>, <code>LevelUpSystem</code></td><td><code>(new_level)</code></td></tr>
+        <tr><td><code>xp_changed</code></td><td><code>gain_xp</code>, <code>_check_level_up</code></td><td><code>HUD</code></td><td><code>(current_xp, xp_to_next)</code></td></tr>
+        <tr><td><code>level_up_choices_ready</code></td><td><code>LevelUpSystem</code></td><td><code>LevelUpScreen</code></td><td><code>(choices)</code></td></tr>
+        <tr><td><code>level_up_choice_picked</code></td><td><code>LevelUpSystem.apply_choice</code></td><td>extensibility</td><td><code>(choice)</code></td></tr>
+        <tr><td><code>enemy_died</code></td><td><code>Enemy.die</code></td><td>extensibility</td><td><code>(enemy, xp_value)</code></td></tr>
+        <tr><td><code>pickup_collected</code></td><td><code>Pickup._collect</code></td><td>extensibility</td><td><code>(pickup)</code></td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section id="extension">
+    <h2><span class="hash">§</span>Extension points</h2>
+    <p class="kicker">The seams designed for you to override or subscribe to</p>
+    <ul>
+      <li><strong>Weapon targeting</strong> — override <code>Weapon._enemies_by_distance()</code>
+        to change how targets are chosen (nearest, random, strongest, …).</li>
+      <li><strong>Spawn waves</strong> — override <code>SpawnDirector._current_interval()</code>
+        or <code>_spawn_enemy()</code> for scripted waves or boss events.</li>
+      <li><strong>Level-up pool</strong> — edit <code>LevelUpSystem.STAT_BOOSTS</code> and the
+        choice generator.</li>
+      <li><strong>Meta-progression / unlocks</strong> — add a new autoload (register it in
+        <code>project.godot</code>) that tracks persistent unlocks across runs and subscribes
+        to <code>enemy_died</code>, <code>pickup_collected</code>, <code>run_started</code>, …</li>
+      <li><strong>Placeholder stats</strong> — <code>luck</code>, <code>greed</code>,
+        <code>shields</code>, <code>curse</code>, <code>thorns</code>, and the rest are unused
+        until you wire them: read them in <code>CharacterController</code> (e.g. apply
+        <code>thorns</code> in <code>take_damage</code>, use <code>luck</code> in a crit roll).</li>
+      <li><strong>Visuals</strong> — every entity draws a placeholder circle in
+        <code>_draw()</code>. Replace with <code>Sprite2D</code> / <code>AnimatedSprite2D</code>
+        and real assets.</li>
+    </ul>
+  </section>
+
+  <section id="gotchas">
+    <h2><span class="hash">§</span>Conventions &amp; gotchas</h2>
+    <ul>
+      <li><strong><code>Equipment</code> is a <code>RefCounted</code>, not a
+        <code>Node</code>.</strong> Don't add it to the tree; the owning
+        <code>CharacterController</code> holds it in an array and drives <code>update()</code>.</li>
+      <li><strong><code>_process</code> vs <code>_physics_process</code>.</strong> Movement,
+        combat and equipment updates use <code>_physics_process</code> (fixed timestep);
+        timers, spawn pacing and the HUD clock use <code>_process</code>.</li>
+      <li><strong>Pause semantics.</strong> <code>GameManager.pause()</code> sets
+        <code>get_tree().paused</code>. Only nodes with <code>PROCESS_MODE_ALWAYS</code> keep
+        processing — that's how the game freezes behind the choice screen.</li>
+      <li><strong>Spawning.</strong> Use <code>GameManager.spawn(node)</code> for anything
+        created at runtime (projectiles, pickups, enemies) so it lands in the current scene
+        without a world reference.</li>
+      <li><strong>Set <code>enemy_data</code> before adding to the tree.</strong>
+        <code>Enemy._ready()</code> reads it, so assign it before <code>GameManager.spawn(enemy)</code>
+        (the spawn director already does this).</li>
+      <li><strong>Collision layers</strong> are the table in <a href="#objects">the object
+        layer</a>. Keep player=1, enemy=2, projectile=4, pickup=8, or update the masks to match.</li>
+      <li><strong>Three bugs found during review are fixed:</strong> the missing
+        <code>player_died</code> signal (game over is now reachable), the enemy double-death
+        guard (one gem per kill), and the level-up unpause ordering (a second level-up
+        re-pauses correctly).</li>
+    </ul>
+  </section>
+
+  <footer>
+    VSS Framework usage guide — Godot 4 / GDScript 2.0. Companion to the project README.
+  </footer>
+</main>

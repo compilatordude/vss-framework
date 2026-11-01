@@ -1,0 +1,14 @@
+# Godot 4+ specific ignores
+.godot/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.code-workspace
